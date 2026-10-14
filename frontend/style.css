@@ -1,0 +1,136 @@
+
+/* ===== General Styles ===== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f4ec;
+    color: #302820;
+    line-height: 1.6;
+}
+
+/* ===== Header ===== */
+
+header {
+    background-color: #4a3728;
+    color: #fff8eb;
+    text-align: center;
+    padding: 32px 20px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+header p {
+    margin: 8px 0 0;
+    color: #e2d2bd;
+    font-size: 14px;
+}
+
+/* ===== Main Content ===== */
+
+main {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    min-height: 60vh;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+/* ===== Buttons ===== */
+
+button {
+    background-color: #78563d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #5c402e;
+}
+
+button:focus-visible {
+    outline: 3px solid #c99758;
+    outline-offset: 3px;
+}
+
+/* ===== NPC Cards ===== */
+
+#npc-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.npc-card {
+    background-color: #fffdf8;
+    border: 1px solid #e4d8c7;
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 3px 10px rgba(48, 40, 32, 0.06);
+}
+
+.npc-card h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: #4a3728;
+}
+
+.npc-card .npc-info {
+    color: #806750;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.npc-card p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ===== Footer ===== */
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #806f5c;
+    font-size: 12px;
+}
+
+/* ===== Responsive Layout ===== */
+
+@media (max-width: 600px) {
+    /* Apply the CSS rules inside below only when the browser's viewport width is 600 pixels or less. */
+    #npc-container {
+        /* Change NPC cards from two columns to one */
+        grid-template-columns: 1fr;
+    }
+
+    .section-header {
+        /* stacks Flexbox items vertically and align left */
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

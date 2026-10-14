@@ -11,6 +11,11 @@ int main() {
         return "Welcome to DM's Notebook!";
     });
 
+    // Handle GET requests to retrieve NPCs
+    CROW_ROUTE(app, "/api/npcs")([]() {
+        return "NPC endpoint is working!";
+    });
+
     // Start the HTTP server on port 18080
     // Enable multithreading to handle concurrent requests
     app.port(18080).multithreaded().run();
