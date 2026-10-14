@@ -1,0 +1,13 @@
+# CMake build output
+/build/
+
+# macOS system files
+.DS_Store
+
+# VS Code local settings
+.vscode/
+
+# Local SQLite database files
+*.db
+*.db-shm
+*.db-wal
