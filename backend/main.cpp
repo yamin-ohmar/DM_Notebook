@@ -1,7 +1,26 @@
 
-#include <crow.h>  // Crow framework for building HTTP servers and REST APIs
+#include <crow.h>
+#include <sqlite3.h>
+#include <iostream>
+#include <string>
+#include <utility>
 
 int main() {
+    // Open the SQLite database
+    sqlite3* db = nullptr;  // pointer to SQLite db connection
+    int result = sqlite3_open("database/dm_notebook.db", &db);  // open SQLite db connection
+
+    // If not successful
+    if (result != SQLITE_OK) {
+        std::cerr << "Failed to open database: "
+                  << sqlite3_errmsg(db) << '\n';    // retrieve db error message
+        // Close the SQLite database
+        sqlite3_close(db);
+        return 1;
+    }
+    // If successful
+    std::cout << "SQLite database connected successfully!\n";
+
     // Create a Crow web application
     crow::SimpleApp app;
 
@@ -27,29 +46,84 @@ int main() {
         return res;
     });
 
-    // Return all NPCs as JSON (GET)
+    // Return all NPCs from SQLite (GET)
     CROW_ROUTE(app, "/api/npcs").methods(crow::HTTPMethod::GET)([]() {
-        crow::json::wvalue npcs;        // Crow's writable JSON value type
+        sqlite3* db = nullptr;
 
-        npcs[0]["id"] = 1;
-        npcs[0]["name"] = "Dudu";
-        npcs[0]["race"] = "Goblin";
-        npcs[0]["role"] = "Guide";
-        npcs[0]["description"] = "A friendly child goblin who helps adventurers find their way.";
+        // Open a read-only connection for this request
+        if (sqlite3_open_v2("database/dm_notebook.db", &db,
+                            SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Database connection failed");
+        }
 
-        npcs[1]["id"] = 2;
-        npcs[1]["name"] = "Oliver";
-        npcs[1]["race"] = "Copper Dragon";
-        npcs[1]["role"] = "Hatchling";
-        npcs[1]["description"] = "A young dragon who loves collecting shiny treasures.";
+        // SQL query
+        const char* sql =
+            "SELECT id, name, race, role, description FROM npcs ORDER BY id;";
 
-        return npcs;
+        sqlite3_stmt* stmt = nullptr;
+
+        // Prepare the SQL query (compile SQL into a prepared statement)
+        if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Failed to prepare query");
+        }
+
+        // Helper function to read text from a SQLite column as a C++ string
+        auto getText = [&](int column) -> std::string {
+            // Read text from current row
+            const unsigned char* text = sqlite3_column_text(stmt, column);
+            // Convert SQLite text to a C++ string, or return "" if NULL
+            return text ? reinterpret_cast<const char*>(text) : "";
+        };
+
+        // Create an empty list to store NPCs as JSON objects
+        crow::json::wvalue::list npcs;
+
+        // Process each returned row
+        int result;
+        while ((result = sqlite3_step(stmt)) == SQLITE_ROW) {   // Executes the statement through results
+            crow::json::wvalue npc;
+
+            npc["id"] = sqlite3_column_int(stmt, 0);    // Reads an integer from the current row
+            npc["name"] = getText(1);
+            npc["race"] = getText(2);
+            npc["role"] = getText(3);
+            npc["description"] = getText(4);
+
+            // Move the completed NPC JSON object into the list (avoid copying)
+            npcs.push_back(std::move(npc));     // npc is likely empty now
+        }
+
+        // Release database resources
+        sqlite3_finalize(stmt);     // Releases the prepared statement
+        sqlite3_close(db);          // Closes the connection
+
+        // Check whether the SQL query completed successfully (no more rows)
+        if (result != SQLITE_DONE) {
+            return crow::response(500, "Failed to read NPC records");
+        }
+
+        // Convert the NPC list into a Crow JSON value
+        crow::json::wvalue json(std::move(npcs));
+
+        // Create an HTTP 200 OK response containing serialized JSON text
+        crow::response res(200, json.dump());
+
+        // Tell the browser that the response contains JSON data
+        res.set_header("Content-Type", "application/json");
+
+        // Send the response back to the client
+        return res;
     });
 
 
     // Start the HTTP server on port 18080
     // Enable multithreading to handle concurrent requests
     app.port(18080).multithreaded().run();
+
+    // Close SQLite db connection
+    sqlite3_close(db);
 
     return 0;
 }
