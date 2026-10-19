@@ -82,7 +82,7 @@ int main() {
 
         // Process each returned row
         int result;
-        while ((result = sqlite3_step(stmt)) == SQLITE_ROW) {   // Executes the statement through results
+        while ((result = sqlite3_step(stmt)) == SQLITE_ROW) {   // Executes the statement
             crow::json::wvalue npc;
 
             npc["id"] = sqlite3_column_int(stmt, 0);    // Reads an integer from the current row
@@ -116,6 +116,114 @@ int main() {
         // Send the response back to the client
         return res;
     });
+
+
+    // Create a new NPC (POST)
+    CROW_ROUTE(app, "/api/npcs").methods(crow::HTTPMethod::POST)
+    ([](const crow::request& req) {
+
+        /********** Getting the new data fron frontend **********/
+        // Parse JSON data sent by the frontend
+        auto body = crow::json::load(req.body);
+
+        // Validate the request body's name field
+        if (!body || !body.has("name") ||
+            body["name"].t() != crow::json::type::String) {
+            return crow::response(400, "Valid NPC name is required");
+        }
+
+        // Retrieve name field
+        std::string name = body["name"].s();    // convert JSON value into C++ string
+
+        // Reject empty or whitespace-only names
+        if (name.find_first_not_of(" \t\n\r") == std::string::npos) {
+            return crow::response(400, "NPC name cannot be empty");
+        }
+
+        // Helper function to read optional fields (key), using default values (fallback) if absent
+        auto getOptional = [&](const char* key, const std::string& fallback) {
+            if (!body.has(key)) // doesn't have values
+                return fallback;
+
+            if (body[key].t() != crow::json::type::String)  // value isn't string
+                return fallback;
+
+            std::string value = body[key].s();          // convert JSON value into C++ string
+            return value.empty() ? fallback : value;    // if empty, set default
+        };
+
+        // Retrieve optional fields
+        std::string race = getOptional("race", "Unknown");
+        std::string role = getOptional("role", "Unknown");
+        std::string description = getOptional("description", "None");
+
+        /****************************************************************/
+
+
+        /********** Sending the new data to backend Database **********/
+        // Open SQLite connection for this request (read & write)
+        sqlite3* db = nullptr;
+
+        if (sqlite3_open_v2("database/dm_notebook.db", &db,
+                            SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Database connection failed");
+        }
+
+        // SQL placeholders (?) prevent SQL injection
+        const char* sql =
+            "INSERT INTO npcs (name, race, role, description) "
+            "VALUES (?, ?, ?, ?);";
+
+        sqlite3_stmt* stmt = nullptr;
+
+        // Prepare SQL statement
+        if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Failed to prepare INSERT");
+        }
+
+        // Bind C++ strings to SQL placeholders (1-based indices)
+        // c_str() converts a C++ string into a format SQLite can read
+        // SQLITE_TRANSIENT tells SQLite to make its own copy of the string
+        sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, race.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 3, role.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 4, description.c_str(), -1, SQLITE_TRANSIENT);
+
+        // Execute INSERT statement
+        int result = sqlite3_step(stmt);
+
+        // Release the prepared statement
+        sqlite3_finalize(stmt);
+
+        if (result != SQLITE_DONE) {
+            sqlite3_close(db);
+            return crow::response(500, "Failed to insert NPC");
+        }
+
+        // Retrieve the database-generated NPC ID - from the last row
+        sqlite3_int64 newId = sqlite3_last_insert_rowid(db);
+        sqlite3_close(db);  // close the connection
+
+        /****************************************************************/
+
+        // Return the newly created NPC
+        crow::json::wvalue created;
+        created["id"] = newId;
+        created["name"] = name;
+        created["race"] = race;
+        created["role"] = role;
+        created["description"] = description;
+
+        // Create an HTTP 201 CREATED response containing serialized JSON text
+        crow::response res(201, created.dump());
+
+        // Tell the browser that the response contains JSON data
+        res.set_header("Content-Type", "application/json");
+        return res;
+    });
+
 
 
     // Start the HTTP server on port 18080

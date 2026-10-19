@@ -31,32 +31,50 @@ function displayNPCs(npcs) {
     });
 }
 
-// function addNPC() {
-//     // TODO 1: Ask user for NPC details
-//     const draftName = prompt("Enter NPC name:");
-//     if (!draftName) return;
-//     const name = draftName.trim();
-//     if (!name) return;
 
-//     const race = prompt("Enter NPC race (e.g. Elf, Draft, Human):");
-//     const role = prompt("Enter NPC role (e.g. Fighter, Mage, Rogue):");
-//     const description = prompt("Enter a brief description of the NPC:");
+async function addNPC() {
+    // Ask for NPC details and validate the name
+    const draftName = prompt("Enter NPC name:");
+    if (!draftName) return;
 
-//     // TODO 2: Create an NPC object
-//     const newNPC = {
-//         id: Math.max(0, ...npcs.map(npc => npc.id)) + 1,
-//         name: name,
-//         race: race || "unknown",
-//         role: role || "unknown",
-//         description: description || "None"
-//     };
+    const name = draftName.trim();
+    if (!name) return;
 
-//     // TODO 3: Add the object to the npcs array
-//     npcs.push(newNPC);
+    const race = prompt("Enter NPC race (e.g. Elf, Dwarf, Human):") || "Unknown";
+    const role = prompt("Enter NPC role (e.g. Fighter, Mage, Rogue):") || "Unknown";
+    const description = prompt("Enter a brief NPC description:") || "None";
 
-//     // TODO 4: Refresh the displayed NPCs
-//     displayNPCs();
-// }
+    // Create an object containing the NPC information
+    const newNPC = {
+        name: name,
+        race: race,
+        role: role,
+        description: description
+    };
+
+    try {
+        // Send a POST request to /api/npcs with a URL and an options object
+        const response = await fetch("/api/npcs", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newNPC)    // converts JavaScript object into JSON text
+        });
+
+        // Throw an Error if the request was unsuccessful
+        if (!response.ok) {
+            throw new Error("Failed to create NPCs");
+        }
+
+        // Reload NPCs after successfully saving the new record
+        await loadNPCs();
+
+    } catch (error) {
+        console.error("Failed to add NPC:", error);
+        alert("Unable to add NPC. Please try again.");
+    }
+}
 
 // async declares a function that returns a Promise and permits await inside it.
 async function loadNPCs() {
@@ -81,9 +99,9 @@ async function loadNPCs() {
 }
 
 
-// Call the function to load and display NPCs
+// Load NPCs when the webpage opens
 loadNPCs();
 
-// Event listener for 'Add NPC' button
-// const addNpcBtn = document.getElementById("add-npc-btn");
-// addNpcBtn.addEventListener("click", addNPC);
+// Handle "Add NPC" button clicks
+const addNpcBtn = document.getElementById("add-npc-btn");
+addNpcBtn.addEventListener("click", addNPC);
