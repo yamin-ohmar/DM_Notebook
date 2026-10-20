@@ -119,6 +119,17 @@ footer {
     font-size: 12px;
 }
 
+/* ===== NPC Edit Button ===== */
+
+.edit-btn {
+    margin-top: 16px;
+    background-color: #78563d;
+}
+
+.edit-btn:hover {
+    background-color: #5c402e;
+}
+
 /* ===== Responsive Layout ===== */
 
 @media (max-width: 600px) {

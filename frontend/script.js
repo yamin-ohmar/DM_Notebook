@@ -23,8 +23,19 @@ function displayNPCs(npcs) {
         const description = document.createElement("p");
         description.textContent = npc.description;
 
+        // Create an Edit button
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.className = "edit-btn";
+
+        // Call editNPC() with the selected NPC when clicked
+        editBtn.addEventListener("click", () => editNPC(npc));
+
         // Add the elements to the card
         card.append(name, info, description);
+
+        // Add the button to the NPC card
+        card.appendChild(editBtn);
 
         // Append the card to npcContainer
         npcContainer.appendChild(card);
@@ -47,9 +58,9 @@ async function addNPC() {
     // Create an object containing the NPC information
     const newNPC = {
         name: name,
-        race: race,
-        role: role,
-        description: description
+        race: race.trim(),
+        role: role.trim(),
+        description: description.trim()
     };
 
     try {
@@ -75,6 +86,56 @@ async function addNPC() {
         alert("Unable to add NPC. Please try again.");
     }
 }
+
+
+async function editNPC(npc) {
+    // Prompt the user for updated NPC details
+    const draftName = prompt("Enter NPC name:", npc.name);
+    if (draftName === null) return;  // Cancel editing
+
+    const name = draftName.trim();
+    if (!name) return;
+
+    // Prompt for optional details (Cancel aborts editing)
+    const race = prompt("Enter NPC race (e.g. Elf, Dwarf, Human):", npc.race);
+    if (race === null) return;
+    const role = prompt("Enter NPC role (e.g. Fighter, Mage, Rogue):", npc.role);
+    if (role === null) return;
+    const description = prompt("Enter a brief NPC description:", npc.description);
+    if (description === null) return;
+
+    // Create an updatedNPC object
+    const updatedNPC = {
+        name: name,
+        race: race.trim() || "Unknown",
+        role: role.trim() || "Unknown",
+        description: description.trim() || "None"
+    };
+
+    try {
+        // Send a PUT request to /api/npcs/{id}
+        const response = await fetch(`/api/npcs/${npc.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(updatedNPC)    // converts JavaScript object into JSON text
+        });
+
+        // Throw an Error if the request was unsuccessful
+        if (!response.ok) {
+            throw new Error("Failed to update an NPC");
+        }
+
+        // Reload the NPC list
+        await loadNPCs();
+
+    } catch (error) {
+        console.error("Failed to update NPC:", error);
+        alert("Unable to update NPC. Please try again.");
+    }
+}
+
 
 // async declares a function that returns a Promise and permits await inside it.
 async function loadNPCs() {

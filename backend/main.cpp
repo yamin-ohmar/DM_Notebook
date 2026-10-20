@@ -225,6 +225,106 @@ int main() {
     });
 
 
+    // Update an existing NPC using its ID (PUT)
+    CROW_ROUTE(app, "/api/npcs/<int>").methods(crow::HTTPMethod::PUT)
+    ([](const crow::request& req, int id) {
+
+        // Parse the JSON request body
+        auto body = crow::json::load(req.body);
+
+        // Validate the required NPC name
+        if (!body || !body.has("name") ||
+            body["name"].t() != crow::json::type::String) {
+            return crow::response(400, "Valid NPC name is required");
+        }
+
+        std::string name = body["name"].s();
+
+        // Reject empty or whitespace-only names
+        if (name.find_first_not_of(" \t\n\r") == std::string::npos) {
+            return crow::response(400, "NPC name cannot be empty");
+        }
+
+        // Read optional fields with default values
+        auto getOptional = [&](const char* key, const std::string& fallback) {
+            if (!body.has(key) ||
+                body[key].t() != crow::json::type::String) {
+                return fallback;
+            }
+
+            std::string value = body[key].s();
+            return value.empty() ? fallback : value;
+        };
+
+        std::string race = getOptional("race", "Unknown");
+        std::string role = getOptional("role", "Unknown");
+        std::string description = getOptional("description", "None");
+
+        // Open SQLite database
+        sqlite3* db = nullptr;
+
+        if (sqlite3_open_v2("database/dm_notebook.db", &db,
+                            SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Database connection failed");
+        }
+
+        // Update the NPC matching the given ID
+        const char* sql =
+            "UPDATE npcs "
+            "SET name = ?, race = ?, role = ?, description = ? "
+            "WHERE id = ?;";
+
+        sqlite3_stmt* stmt = nullptr;
+
+        // Prepare the UPDATE statement
+        if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Failed to prepare UPDATE");
+        }
+
+        // Bind NPC data to the SQL placeholders
+        sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, race.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 3, role.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 4, description.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(stmt, 5, id);
+
+        // Execute the UPDATE statement
+        int result = sqlite3_step(stmt);
+
+        // Release the prepared statement
+        sqlite3_finalize(stmt);
+
+        if (result != SQLITE_DONE) {
+            sqlite3_close(db);
+            return crow::response(500, "Failed to update NPC");
+        }
+
+        // Check whether an NPC with this ID was found
+        int changedRows = sqlite3_changes(db);
+        sqlite3_close(db);
+
+        // No rows has been changed (because not found)
+        if (changedRows == 0) {
+            return crow::response(404, "NPC not found");
+        }
+
+        // Return the updated NPC as JSON
+        crow::json::wvalue updated;
+        updated["id"] = id;
+        updated["name"] = name;
+        updated["race"] = race;
+        updated["role"] = role;
+        updated["description"] = description;
+
+        // Create an HTTP 200 OK response containing serialized JSON text
+        crow::response res(200, updated.dump());
+
+        // Tell the browser that the response contains JSON data
+        res.set_header("Content-Type", "application/json");
+        return res;
+    });
 
     // Start the HTTP server on port 18080
     // Enable multithreading to handle concurrent requests
