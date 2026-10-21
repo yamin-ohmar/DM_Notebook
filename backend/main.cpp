@@ -305,7 +305,7 @@ int main() {
         int changedRows = sqlite3_changes(db);
         sqlite3_close(db);
 
-        // No rows has been changed (because not found)
+        // If no rows has been changed (because not found)
         if (changedRows == 0) {
             return crow::response(404, "NPC not found");
         }
@@ -324,6 +324,56 @@ int main() {
         // Tell the browser that the response contains JSON data
         res.set_header("Content-Type", "application/json");
         return res;
+    });
+
+
+    // Delete an NPC using its ID (DELETE)
+    CROW_ROUTE(app, "/api/npcs/<int>").methods(crow::HTTPMethod::DELETE)
+    ([](int id) {
+
+        // Open SQLite database
+        sqlite3* db = nullptr;
+
+        if (sqlite3_open_v2("database/dm_notebook.db", &db,
+                            SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Database connection failed");
+        }
+
+        // Prepare SQL statement using a parameter placeholder
+        const char* sql = "DELETE FROM npcs WHERE id = ?;";
+        sqlite3_stmt* stmt = nullptr;
+
+        if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+            sqlite3_close(db);
+            return crow::response(500, "Failed to prepare DELETE");
+        }
+
+        // Bind the NPC ID to the first placeholder
+        sqlite3_bind_int(stmt, 1, id);
+
+        // Execute the DELETE statement
+        int result = sqlite3_step(stmt);
+
+        // Release the prepared statement
+        sqlite3_finalize(stmt);
+
+        if (result != SQLITE_DONE) {
+            sqlite3_close(db);
+            return crow::response(500, "Failed to delete NPC");
+        }
+
+        // Check whether an NPC was actually deleted
+        int deletedRows = sqlite3_changes(db);
+        sqlite3_close(db);
+
+        // If no rows has been deleted (because ID not found)
+        if (deletedRows == 0) {
+            return crow::response(404, "NPC not found");
+        }
+
+        // Return success without a response body (with status code 204: no content)
+        return crow::response(204);
     });
 
     // Start the HTTP server on port 18080

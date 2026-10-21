@@ -31,11 +31,16 @@ function displayNPCs(npcs) {
         // Call editNPC() with the selected NPC when clicked
         editBtn.addEventListener("click", () => editNPC(npc));
 
-        // Add the elements to the card
-        card.append(name, info, description);
+        // Create a Delete button for this NPC
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.className = "delete-btn";
 
-        // Add the button to the NPC card
-        card.appendChild(editBtn);
+        // Delete the selected NPC when clicked
+        deleteBtn.addEventListener("click", () => deleteNPC(npc));
+
+        // Add the elements to the card
+        card.append(name, info, description, editBtn, deleteBtn);
 
         // Append the card to npcContainer
         npcContainer.appendChild(card);
@@ -133,6 +138,37 @@ async function editNPC(npc) {
     } catch (error) {
         console.error("Failed to update NPC:", error);
         alert("Unable to update NPC. Please try again.");
+    }
+}
+
+
+async function deleteNPC(npc) {
+    // Ask the user to confirm deletion
+    const confirmed = confirm(
+        `Are you sure you want to delete ${npc.name}? This cannot be undone.`
+    );
+
+    // Stop if the user clicks Cancel
+    if (!confirmed) return;
+
+    try {
+        // Send DELETE request to /api/npcs/{id}
+        // For delete, no JSON body to parse
+        const response = await fetch(`/api/npcs/${npc.id}`, {
+            method: "DELETE"
+        });
+
+        // Throw an Error if the request was unsuccessful
+        if (!response.ok) {
+            throw new Error("Failed to delete an NPC");
+        }
+
+        // Reload NPCs
+        await loadNPCs();
+
+    } catch (error) {
+        console.error("Failed to delete NPC:", error);
+        alert("Unable to delete NPC. Please try again.");
     }
 }
 

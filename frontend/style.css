@@ -130,6 +130,18 @@ footer {
     background-color: #5c402e;
 }
 
+/* ===== NPC Delete Button ===== */
+
+.delete-btn {
+    margin-top: 16px;
+    margin-left: 10px;
+    background-color: #a44f47;
+}
+
+.delete-btn:hover {
+    background-color: #843b35;
+}
+
 /* ===== Responsive Layout ===== */
 
 @media (max-width: 600px) {
