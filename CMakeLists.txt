@@ -24,3 +24,27 @@ target_link_libraries(DM_Notebook PRIVATE
     Crow::Crow
     SQLite3::SQLite3
 )
+
+
+########################################
+
+# Enable automated testing through CTest
+enable_testing()
+
+# Build the NPC repository test executable
+add_executable(test_npc_repository
+    tests/test_npc_repository.cpp
+    backend/database/npc_repository.cpp
+)
+
+# Link SQLite (Crow is not needed for repository tests)
+target_link_libraries(test_npc_repository PRIVATE
+    SQLite3::SQLite3
+)
+
+# Register the executable with CTest
+add_test(
+    NAME NPCRepositoryTests
+    COMMAND test_npc_repository
+)
+

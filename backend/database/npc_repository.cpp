@@ -8,11 +8,18 @@
 #include <memory>
 #include <utility>
 
+
+// Constructor
+NPCRepository::NPCRepository(const std::string& dbPath)
+    : dbPath(dbPath) {
+}
+
+
 std::vector<NPC> NPCRepository::getAllNPCs() {
     // Open the SQLite database in read-only mode
     sqlite3* rawDb = nullptr;
 
-    if (sqlite3_open_v2("database/dm_notebook.db", &rawDb,
+    if (sqlite3_open_v2(dbPath.c_str(), &rawDb,
                         SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK) {
         sqlite3_close(rawDb);
         throw std::runtime_error("Failed to open database");
@@ -75,7 +82,7 @@ std::vector<NPC> NPCRepository::getAllNPCs() {
 NPC NPCRepository::createNPC(const NPC& npc) {
     // Open the SQLite database for reading and writing
     sqlite3* rawDb = nullptr;
-    if (sqlite3_open_v2("database/dm_notebook.db", &rawDb,
+    if (sqlite3_open_v2(dbPath.c_str(), &rawDb,
                         SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
         sqlite3_close(rawDb);
         throw std::runtime_error("Failed to open database");
@@ -129,7 +136,7 @@ NPC NPCRepository::createNPC(const NPC& npc) {
 bool NPCRepository::updateNPC(const NPC& npc) {
     // Open SQLite database for reading and writing
     sqlite3* rawDb = nullptr;
-    if (sqlite3_open_v2("database/dm_notebook.db", &rawDb,
+    if (sqlite3_open_v2(dbPath.c_str(), &rawDb,
                         SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
         sqlite3_close(rawDb);
         throw std::runtime_error("Failed to open database");
@@ -183,7 +190,7 @@ bool NPCRepository::updateNPC(const NPC& npc) {
 bool NPCRepository::deleteNPC(int id) {
     // Open SQLite database for reading and writing
     sqlite3* rawDb = nullptr;
-    if (sqlite3_open_v2("database/dm_notebook.db", &rawDb,
+    if (sqlite3_open_v2(dbPath.c_str(), &rawDb,
                         SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
         sqlite3_close(rawDb);
         throw std::runtime_error("Failed to open database");
