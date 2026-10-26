@@ -15,7 +15,7 @@ jobs:
     steps:
       # Download the repository onto the runner
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Install the libraries needed to compile the project
       - name: Install dependencies
