@@ -1,0 +1,45 @@
+
+name: C++ Build and Test
+
+# Run automatically when code is pushed or a pull request is opened
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # Download the repository onto the runner
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install the libraries needed to compile the project
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasio-dev libsqlite3-dev
+
+      # Install the same Crow version used locally
+      - name: Install Crow
+        run: |
+          git clone --depth 1 --branch v1.3.4 https://github.com/CrowCpp/Crow.git /tmp/Crow
+          cmake -S /tmp/Crow -B /tmp/Crow/build \
+            -DCROW_BUILD_EXAMPLES=OFF \
+            -DCROW_BUILD_TESTS=OFF
+          sudo cmake --install /tmp/Crow/build
+
+      # Configure the C++ project
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+      # Compile the application and test executable
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      # Execute automated integration tests
+      - name: Run CTest
+        run: ctest --test-dir build --output-on-failure
