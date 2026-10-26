@@ -12,6 +12,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Crow CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 
+# Support older CMake versions that use a different SQLite target name
+if(NOT TARGET SQLite3::SQLite3)
+    add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+endif()
+
 # Define the executable and its C++ source files
 add_executable(DM_Notebook
     backend/main.cpp
