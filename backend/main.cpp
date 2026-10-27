@@ -1,13 +1,15 @@
 
 #include <crow.h>
 #include "routes/npc_routes.h"
+#include "routes/campaign_routes.h"
 
 int main() {
     // Create a Crow web application
     crow::SimpleApp app;
 
-    // Register NPC API endpoints
+    // Register API endpoints
     registerNPCRoutes(app);
+    registerCampaignRoutes(app);
 
     // Define the root ("/") route using a lambda function for GET requests
     // Serve the frontend homepage

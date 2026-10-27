@@ -23,6 +23,7 @@ add_executable(DM_Notebook
     backend/database/npc_repository.cpp
     backend/database/campaign_repository.cpp
     backend/routes/npc_routes.cpp
+    backend/routes/campaign_routes.cpp
 )
 
 # Link external libraries
