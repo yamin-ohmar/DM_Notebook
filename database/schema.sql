@@ -5,3 +5,9 @@ CREATE TABLE IF NOT EXISTS npcs (
     role TEXT DEFAULT 'Unknown',
     description TEXT DEFAULT 'None'
 );
+
+CREATE TABLE IF NOT EXISTS campaigns (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT ''
+);

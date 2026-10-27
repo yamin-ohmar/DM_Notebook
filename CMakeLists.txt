@@ -21,6 +21,7 @@ endif()
 add_executable(DM_Notebook
     backend/main.cpp
     backend/database/npc_repository.cpp
+    backend/database/campaign_repository.cpp
     backend/routes/npc_routes.cpp
 )
 
@@ -53,3 +54,20 @@ add_test(
     COMMAND test_npc_repository
 )
 
+#########
+
+# Build the CampaignRepository test executable
+add_executable(test_campaign_repository
+    tests/test_campaign_repository.cpp
+    backend/database/campaign_repository.cpp
+)
+
+target_link_libraries(test_campaign_repository PRIVATE
+    SQLite3::SQLite3
+)
+
+# Register campaign tests with CTest
+add_test(
+    NAME CampaignRepositoryTests
+    COMMAND test_campaign_repository
+)
