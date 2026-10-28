@@ -142,6 +142,62 @@ footer {
     background-color: #843b35;
 }
 
+/* Campaign homepage */
+#campaign-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.campaign-card {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.campaign-card h3 {
+    margin-top: 0;
+}
+
+.campaign-card p {
+    line-height: 1.5;
+}
+
+
+/* Create campaign form */
+.campaign-form-section {
+    max-width: 600px;
+    margin-bottom: 32px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#campaign-form-message {
+    margin-top: 12px;
+}
+
+
 /* ===== Responsive Layout ===== */
 
 @media (max-width: 600px) {

@@ -33,6 +33,21 @@ int main() {
         return res;
     });
 
+    // Serve the NPC management page
+    CROW_ROUTE(app, "/npcs")([]() {
+        crow::response res;
+        res.set_static_file_info("frontend/npcs.html");
+        return res;
+    });
+
+    // Serve the NPC management JavaScript
+    CROW_ROUTE(app, "/npcs.js")([]() {
+        crow::response res;
+        res.set_static_file_info("frontend/npcs.js");
+        return res;
+    });
+
+
     // Start the HTTP server on port 18080
     app.port(18080).multithreaded().run();
 
