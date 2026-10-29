@@ -3,28 +3,44 @@
 
 [![C++ Build and Test](https://github.com/yamin-ohmar/DM_Notebook/actions/workflows/ci.yml/badge.svg)](https://github.com/yamin-ohmar/DM_Notebook/actions/workflows/ci.yml)
 
-A full-stack Dungeons & Dragons campaign management web application built using C++, Crow, SQLite and JavaScript.
+A lightweight, beginner-friendly Dungeons & Dragons campaign planning and storytelling web application built using C++, Crow, SQLite and JavaScript.
 
-The project aims to provide Dungeon Masters with a convenient way to organise campaign information, including NPCs, locations, quests and session notes.
+DM's Notebook aims to help Dungeon Masters organise campaigns, prepare sessions, record memorable adventures and maintain story continuity without requiring extensive knowledge of D&D rules.
 
 **Project Status:** In active development.
 
 ## Features
 
 ### Implemented
+
+**Campaign Management**
+- Create, view, edit and delete multiple campaigns.
+- Store campaign names and descriptions in SQLite.
+- Display campaigns as cards on the homepage.
+- RESTful API supporting campaign CRUD operations.
+
+**NPC Management**
 - Create, view, edit and delete NPCs.
-- Store NPC information, including name, race, role and description.
-- Persist NPC records using SQLite.
-- Responsive web interface displaying NPC cards.
-- RESTful API for NPC management.
-- Automated SQLite integration tests using CTest.
-- GitHub Actions CI for automatic builds and testing.
+- Store NPC names, races, roles and descriptions.
+- Display NPCs as cards on a dedicated page.
+- RESTful API supporting NPC CRUD operations.
+
+**Backend and Testing**
+- Modular C++ backend using models, repositories and routes.
+- SQLite persistence using prepared statements and RAII.
+- Automated SQLite integration tests for NPC and Campaign repositories using CTest.
+- GitHub Actions CI for automated C++ builds and testing on Ubuntu.
 
 ### Planned
-- Campaign management.
-- Location and quest tracking.
-- Session notes.
-- Improved user interface and navigation.
+
+- Campaign dashboards and navigation.
+- Campaign-specific NPCs and reusable resources.
+- Session planning with objectives, story outlines and notes.
+- Session outcomes, memorable moments and recaps.
+- Player characters, locations, items, monsters and maps.
+- Image support for campaign resources.
+- Optional branching scenarios and DM scripts.
+- Future AI-assisted session planning and narrative recaps.
 
 ## Tech Stack
 
@@ -47,6 +63,7 @@ The project aims to provide Dungeon Masters with a convenient way to organise ca
 - Crow 1.3.4
 - Asio
 - SQLite3 development libraries
+- SQLite3 command-line tool for database initialisation
 
 ### Build
 
@@ -59,11 +76,13 @@ cmake --build build
 
 ### Initialise the Database
 
-Create the SQLite database and NPC table before launching the application:
+Create the SQLite database and required tables before launching the application:
 
 ```bash
 sqlite3 database/dm_notebook.db < database/schema.sql
 ```
+
+This initialises the `campaigns` and `npcs` tables.
 
 ### Run
 
@@ -73,14 +92,22 @@ sqlite3 database/dm_notebook.db < database/schema.sql
 
 Open http://localhost:18080 in your browser.
 
+Current pages:
+- `/` — Campaign management homepage.
+- `/npcs` — NPC management page.
+
+**Note:** NPC records are not yet associated with individual campaigns.
+
 ## Automated Testing
 
-The project uses CTest to execute SQLite integration tests for NPC repository operations, including:
+The project uses CTest to execute SQLite integration tests for both NPC and Campaign repositories.
 
-- Creating and retrieving NPCs.
-- Updating existing NPCs.
-- Deleting NPCs.
-- Handling deletion of nonexistent NPCs.
+Current test coverage includes:
+- Retrieving records from an empty database.
+- Creating records and verifying stored information.
+- Updating records and verifying changes.
+- Deleting existing records.
+- Handling nonexistent records during update or deletion.
 
 Run the tests using:
 
@@ -89,7 +116,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Tests use an isolated SQLite database to avoid modifying application data.
+Tests use separate SQLite databases to avoid modifying application data.
 
 ## Continuous Integration
 
@@ -104,12 +131,16 @@ The CI workflow performs:
 
 ## Future Development
 
-DM's Notebook is an ongoing learning project.
+DM's Notebook is an ongoing software engineering learning and portfolio project.
 
-Planned improvements include:
-- Campaign management functionality.
-- Location and quest tracking.
-- Session notes and campaign organisation.
-- Improved frontend interface and navigation.
-- Expanded automated test coverage.
-- Automatic database initialisation.
+The next development priorities are:
+
+1. Introduce individual campaign dashboards.
+2. Associate NPCs and other resources with campaigns.
+3. Implement session creation and planning.
+4. Record session outcomes and memorable events.
+5. Support manual session recaps and campaign continuity.
+6. Add images, maps and additional campaign resources.
+7. Explore optional AI-assisted storytelling features.
+
+The application prioritises simplicity, accessibility and storytelling over complex D&D rule management.
